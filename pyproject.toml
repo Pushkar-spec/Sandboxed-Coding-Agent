@@ -1,5 +1,5 @@
 [project]
-name = "codingagent"
+name = "codeagent"
 version = "0.1.0"
 description = "This is a sandboxed coding agent"
 readme = "README.md"
@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-codingagent = "codingagent:main"
+codeagent = "codeagent:main"
 
 [build-system]
 requires = ["uv_build>=0.13.6,<0.14.0"]
@@ -31,6 +31,7 @@ dev = [
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.3",
+    "types-docker>=7.2.0.20261102",
 ]
 
 [tool.ruff]
