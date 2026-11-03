@@ -235,3 +235,6 @@ def test_sandbox_allows_network_access(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     assert "200" in result.stdout
+
+# Actual Memory Limit Enforcement
+

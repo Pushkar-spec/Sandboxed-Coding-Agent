@@ -122,6 +122,11 @@ def test_sandbox_captures_stdout_and_stderr(
     mock_client.containers.run.return_value = mock_container
     mock_container.status = "exited"
     mock_container.wait.return_value = {"StatusCode": 0}
+    mock_container.attrs = {
+        "State": {
+            "OOMKilled": False
+        }
+    }
 
     def mock_logs(stdout: bool, stderr: bool) -> bytes:
         if stdout:

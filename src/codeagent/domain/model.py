@@ -24,3 +24,4 @@ class SandboxResult(BaseModel):
     duration_s: float = Field(default=0.0, ge=0)
     timed_out: bool = False
     artifacts: dict[str, int] = Field(default_factory=dict)
+    oom_killed: bool = False

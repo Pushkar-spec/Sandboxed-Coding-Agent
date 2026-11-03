@@ -114,6 +114,9 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
 
                 result = container.wait()
 
+                container.reload()
+                oom_killed = container.attrs.get("State", {}).get("OOMKilled", False)
+
             except DockerException as exc:
                 return SandboxResult(
                     stderr=f"Docker execution failed: {exc}",
@@ -129,6 +132,8 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
             )
 
             exit_code = result.get("StatusCode", 1)
+            if oom_killed:
+                error_logs += "\nContainer terminated due to memory limit (OOM)."
 
             return SandboxResult(
                 stdout=logs[:100_000],
