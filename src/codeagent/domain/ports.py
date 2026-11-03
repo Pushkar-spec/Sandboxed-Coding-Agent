@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Protocol
 
-from codeagent.domain.model import SandboxConfig, SandboxResult
+from codeagent.domain.model import LLMResponse, Message, SandboxConfig, SandboxResult
 
 
 class Sandbox(Protocol):
@@ -15,3 +15,11 @@ class Sandbox(Protocol):
         ...
         # ... -> Ellipsis, Here, they indicate that the method body is intentionally omitted.
         # The protocol describes the required method but doesn't implement its behavior.
+
+class LLM(Protocol):
+    """Contract for interacting with a language model."""
+
+    def complete(self, system: str, messages: list[Message]) -> LLMResponse:
+        """Generate a response from the language model."""
+
+        ...

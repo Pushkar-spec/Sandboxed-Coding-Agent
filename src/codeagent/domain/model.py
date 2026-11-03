@@ -25,3 +25,14 @@ class SandboxResult(BaseModel):
     timed_out: bool = False
     artifacts: dict[str, int] = Field(default_factory=dict)
     oom_killed: bool = False
+
+class Message(BaseModel):
+    role: str
+    content: str
+
+class LLMResponse(BaseModel):
+    text: str
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+
+# input_tokens and output_tokens: Help us track API usage and eventually estimate costs.
