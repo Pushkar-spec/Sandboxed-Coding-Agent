@@ -20,6 +20,16 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
         # Think of self.client as the Python application's connection to Docker.
         #  Through it, we can create containers, retrieve their logs, stop them, and remove them.
 
+    def _discover_artifacts(self, workdir: Path, code_file: Path) -> dict[str, int]:
+        """Discover files generated during sandbox execution."""
+        artifacts: dict[str, int] = {}
+
+        for path in workdir.rglob("*"):
+            if path.is_file() and not path.is_symlink() and path != code_file:
+                relative_path = path.relative_to(workdir).as_posix()
+                artifacts[relative_path] = path.stat().st_size
+
+        return artifacts
     
     def run(
         self,
@@ -40,7 +50,27 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
         try:
             container = self.client.containers.run(
                 image=self.image,
-                command=["python", "/workspace/main.py"],
+
+                command=[
+                    "python",
+                    "-c",
+                    (
+                        "import os, runpy, subprocess, sys; "
+                        "packages = sys.argv[1:]; "
+                        "target = '/tmp/python-packages'; "
+                        "os.makedirs(target, exist_ok=True); "
+                        "subprocess.run("
+                        "[sys.executable, '-m', 'pip', 'install', "
+                        "'--disable-pip-version-check', '--no-cache-dir', "
+                        "'--target', target, *packages], "
+                        "check=True"
+                        ") if packages else None; "
+                        "sys.path.insert(0, target); "
+                        "runpy.run_path('/workspace/main.py', run_name='__main__')"
+                    ),
+                    *config.packages,
+                ],
+
                 working_dir="/workspace",
                 volumes={
                     str(workdir): {
@@ -49,7 +79,11 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
                     }
                 },
                 detach=True,
-                network_mode="bridge" if config.network_enabled else "none",
+                network_mode=(
+                    "bridge" if config.network_enabled or config.packages else "none"
+                ),
+                # We added config.packages because it tells Docker which additional Python libraries
+                #  the user wants installed before their code executes.
                 mem_limit=f"{config.memory_limit_mb}m",
                 nano_cpus=int(config.cpu_limit * 1_000_000_000),
                 pids_limit=64,
@@ -101,6 +135,7 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
                 stderr=error_logs[:100_000],
                 exit_code=exit_code,
                 duration_s=time.monotonic() - start_time,
+                artifacts=self._discover_artifacts(workdir, code_file),
             )
 
         except ImageNotFound:

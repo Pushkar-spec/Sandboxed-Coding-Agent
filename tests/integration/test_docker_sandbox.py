@@ -156,3 +156,38 @@ def test_sandbox_creates_workdir(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert workdir.exists()
     assert workdir.is_dir()
+
+# Test for file extraction from sandbox    
+
+def test_artifact_reported_with_size(tmp_path: Path) -> None:
+    sandbox = DockerSandbox()
+
+    result = sandbox.run(
+        code="with open('out.txt', 'w') as f: f.write('xyz')",
+        workdir=tmp_path,
+        config=SandboxConfig(),
+    )
+
+    assert result.exit_code == 0
+    assert result.artifacts == {"out.txt": 3}
+
+# Extra dependency installation
+
+def test_sandbox_installs_extra_package(tmp_path: Path) -> None:
+    sandbox = DockerSandbox()
+
+    result = sandbox.run(
+        code=(
+            "import tabulate\n"
+            "print(tabulate.tabulate([[1, 2], [3, 4]]))"
+        ),
+        workdir=tmp_path,
+        config=SandboxConfig(
+            packages=["tabulate"],
+            timeout_s=120,
+        ),
+    )
+
+    assert result.exit_code == 0
+    assert "1" in result.stdout
+    assert "3" in result.stdout

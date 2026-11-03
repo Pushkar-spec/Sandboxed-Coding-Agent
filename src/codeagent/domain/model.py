@@ -23,4 +23,4 @@ class SandboxResult(BaseModel):
     exit_code: int | None = None
     duration_s: float = Field(default=0.0, ge=0)
     timed_out: bool = False
-    artifacts: list[str] = Field(default_factory=list)
+    artifacts: dict[str, int] = Field(default_factory=dict)
