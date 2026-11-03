@@ -118,7 +118,7 @@ def test_container_is_removed_after_timeout(tmp_path: Path) -> None:
 
 # Resource Limit Testing
 
-def test_sandbox_enforces_memory_limit(tmp_path: Path) -> None:
+def test_sandbox_configures_memory_limit(tmp_path: Path) -> None:
     sandbox = DockerSandbox()
 
     result = sandbox.run(
@@ -238,3 +238,16 @@ def test_sandbox_allows_network_access(tmp_path: Path) -> None:
 
 # Actual Memory Limit Enforcement
 
+def test_sandbox_enforces_memory_limit(tmp_path: Path) -> None:
+    sandbox = DockerSandbox()
+
+    result = sandbox.run(
+        code="data = bytearray(512 * 1024 * 1024)",
+        workdir=tmp_path,
+        config=SandboxConfig(
+            memory_limit_mb=128,
+            timeout_s=15,
+        ),
+    )
+
+    assert result.oom_killed is True

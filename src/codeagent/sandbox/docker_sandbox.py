@@ -141,6 +141,7 @@ class DockerSandbox:  # it is the adapter for the port we created in port.py
                 exit_code=exit_code,
                 duration_s=time.monotonic() - start_time,
                 artifacts=self._discover_artifacts(workdir, code_file),
+                oom_killed=oom_killed,
             )
 
         except ImageNotFound:
