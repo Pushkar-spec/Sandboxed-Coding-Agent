@@ -191,3 +191,47 @@ def test_sandbox_installs_extra_package(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "1" in result.stdout
     assert "3" in result.stdout
+
+# Testing network in docker
+
+def test_sandbox_blocks_network_access(tmp_path: Path) -> None:
+    sandbox = DockerSandbox()
+
+    result = sandbox.run(
+        code=(
+            "import urllib.request\n"
+            "try:\n"
+            "    urllib.request.urlopen('https://example.com', timeout=5)\n"
+            "    print('NETWORK_ACCESS_ALLOWED')\n"
+            "except Exception:\n"
+            "    print('NETWORK_ACCESS_BLOCKED')\n"
+        ),
+        workdir=tmp_path,
+        config=SandboxConfig(
+            network_enabled=False,
+            timeout_s=15,
+        ),
+    )
+
+    assert result.exit_code == 0
+    assert "NETWORK_ACCESS_BLOCKED" in result.stdout
+
+def test_sandbox_allows_network_access(tmp_path: Path) -> None:
+    sandbox = DockerSandbox()
+
+    result = sandbox.run(
+        code=(
+            "import urllib.request\n"
+            "response = urllib.request.urlopen("
+            "'https://example.com', timeout=10)\n"
+            "print(response.status)\n"
+        ),
+        workdir=tmp_path,
+        config=SandboxConfig(
+            network_enabled=True,
+            timeout_s=20,
+        ),
+    )
+
+    assert result.exit_code == 0
+    assert "200" in result.stdout
