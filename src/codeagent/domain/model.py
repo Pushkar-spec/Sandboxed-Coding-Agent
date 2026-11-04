@@ -28,28 +28,10 @@ class SandboxResult(BaseModel):
     artifacts: dict[str, int] = Field(default_factory=dict)
     oom_killed: bool = False
 
-class ComplexityProfile(StrEnum): # for assigining a complexity profile
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-
-DEFAULT_RESOURCE_CONFIGS: dict[ComplexityProfile, SandboxConfig] = {
-        ComplexityProfile.LOW: SandboxConfig(
-            timeout_s=30,
-            memory_limit_mb=256,
-            cpu_limit=0.5,
-        ),
-        ComplexityProfile.MEDIUM: SandboxConfig(
-            timeout_s=60,
-            memory_limit_mb=512,
-            cpu_limit=1.0,
-        ),
-        ComplexityProfile.HIGH: SandboxConfig(
-            timeout_s=120,
-            memory_limit_mb=1024,
-            cpu_limit=2.0,
-        ),
-    }
+class Complexity(StrEnum):
+    SIMPLE = "simple"
+    STANDARD = "standard"
+    COMPLEX = "complex"
 
 class Message(BaseModel):
     role: str
@@ -61,3 +43,12 @@ class LLMResponse(BaseModel):
     output_tokens: int = Field(default=0, ge=0)
 
 # input_tokens and output_tokens: Help us track API usage and eventually estimate costs.
+
+class TaskSpec(BaseModel):  # for fallback
+    task: str
+    complexity: Complexity = Complexity.STANDARD
+    acceptance_criteria: tuple[str, ...] = ()
+    assumptions: tuple[str, ...] = ()
+    expected_artifacts: tuple[str, ...] = ()
+    max_attempts: int = Field(default=4, gt=0)
+    sandbox: SandboxConfig = Field(default_factory=SandboxConfig)
