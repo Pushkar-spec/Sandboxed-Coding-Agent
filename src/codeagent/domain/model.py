@@ -1,5 +1,6 @@
 # defines the data going into and coming out of a sandbox.
 
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -15,6 +16,7 @@ class SandboxConfig(BaseModel):
     packages: list[str] = Field(default_factory=list)
 
 
+
 class SandboxResult(BaseModel):
     """Structured outcome of a sandbox execution."""
 
@@ -25,6 +27,29 @@ class SandboxResult(BaseModel):
     timed_out: bool = False
     artifacts: dict[str, int] = Field(default_factory=dict)
     oom_killed: bool = False
+
+class ComplexityProfile(StrEnum): # for assigining a complexity profile
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+DEFAULT_RESOURCE_CONFIGS: dict[ComplexityProfile, SandboxConfig] = {
+        ComplexityProfile.LOW: SandboxConfig(
+            timeout_s=30,
+            memory_limit_mb=256,
+            cpu_limit=0.5,
+        ),
+        ComplexityProfile.MEDIUM: SandboxConfig(
+            timeout_s=60,
+            memory_limit_mb=512,
+            cpu_limit=1.0,
+        ),
+        ComplexityProfile.HIGH: SandboxConfig(
+            timeout_s=120,
+            memory_limit_mb=1024,
+            cpu_limit=2.0,
+        ),
+    }
 
 class Message(BaseModel):
     role: str

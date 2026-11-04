@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 from codeagent.domain.model import Message
-from llm.gemini_llm import GeminiLLM
+from codeagent.llm.gemini_llm import GeminiLLM
 
 
 def create_mock_gemini_client() -> MagicMock:
